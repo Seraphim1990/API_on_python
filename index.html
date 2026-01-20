@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Перегляд Values</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .chart-widget {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .chart-widget h2 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.5em;
+        }
+
+        .datetime-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 20px;
+            align-items: end;
+        }
+
+        .datetime-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .datetime-group label {
+            font-weight: 600;
+            color: #555;
+            font-size: 0.95em;
+        }
+
+        .datetime-group input {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .datetime-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .table-container {
+            padding: 30px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        th.checkbox-col {
+            width: 50px;
+            text-align: center;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 0.95em;
+        }
+
+        td.checkbox-col {
+            text-align: center;
+        }
+
+        tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        tbody tr.selected {
+            background: #e7f3ff;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #e7f3ff;
+            color: #0066cc;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2em;
+            color: #667eea;
+        }
+
+        .error {
+            text-align: center;
+            padding: 50px;
+            color: #dc3545;
+            font-size: 1.1em;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+            font-size: 1.1em;
+        }
+
+        .count-badge {
+            background: white;
+            color: #667eea;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .checkbox-input {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .select-all-label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .selected-count {
+            margin-left: 10px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        /* Mobile responsive styles */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .header p {
+                font-size: 0.9em;
+            }
+
+            .chart-widget {
+                padding: 15px;
+            }
+
+            .chart-widget h2 {
+                font-size: 1.2em;
+                margin-bottom: 15px;
+            }
+
+            .datetime-controls {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .datetime-group label {
+                font-size: 0.85em;
+            }
+
+            .datetime-group input {
+                padding: 10px;
+                font-size: 0.9em;
+            }
+
+            .btn {
+                padding: 10px 15px;
+                font-size: 0.9em;
+                width: 100%;
+            }
+
+            .controls {
+                padding: 15px;
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch;
+            }
+
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            table {
+                min-width: 600px;
+                font-size: 0.85em;
+            }
+
+            th, td {
+                padding: 10px 8px;
+            }
+
+            .tag {
+                font-size: 0.75em;
+                padding: 4px 8px;
+            }
+
+            .count-badge {
+                padding: 6px 12px;
+                font-size: 0.85em;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .header h1 {
+                font-size: 1.2em;
+            }
+
+            .chart-widget {
+                padding: 10px;
+            }
+
+            table {
+                font-size: 0.75em;
+            }
+
+            th, td {
+                padding: 8px 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Перегляд Values</h1>
+            <p>Усі значення з бази даних</p>
+        </div>
+
+        <!-- Віджет для графіків -->
+        <div class="chart-widget">
+            <h2>📈 Налаштування графіків</h2>
+            <div class="datetime-controls">
+                <div class="datetime-group">
+                    <label for="start-datetime">Дата і час початку:</label>
+                    <input type="datetime-local" id="start-datetime">
+                </div>
+                <div class="datetime-group">
+                    <label for="end-datetime">Дата і час кінця:</label>
+                    <input type="datetime-local" id="end-datetime">
+                </div>
+                <button class="btn btn-success" onclick="buildChart()">📊 Побудувати графік</button>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div>
+                <button class="btn btn-primary" onclick="loadValues()">🔄 Оновити дані</button>
+                <span class="selected-count">Вибрано: <span id="selected-count">0</span></span>
+            </div>
+            <div class="status">
+                <span class="status-dot"></span>
+                <span>Завантажено: <span class="count-badge" id="count">0</span> записів</span>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div id="content">
+                <div class="loading">⏳ Завантаження даних...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "http://192.168.2.45:8080/values/get_logging_only";
+        let selectedValues = new Set();
+
+        async function loadValues() {
+            const contentDiv = document.getElementById('content');
+            const countSpan = document.getElementById('count');
+            
+            contentDiv.innerHTML = '<div class="loading">⏳ Завантаження даних...</div>';
+
+            try {
+                const response = await fetch(API_URL);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP помилка! Статус: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (!Array.isArray(data)) {
+                    throw new Error('Отримані дані не є масивом');
+                }
+
+                if (data.length === 0) {
+                    contentDiv.innerHTML = '<div class="empty">📭 Немає даних для відображення</div>';
+                    countSpan.textContent = '0';
+                    return;
+                }
+
+                // Оновлюємо лічильник
+                countSpan.textContent = data.length;
+
+                // Створюємо таблицю
+                const table = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="checkbox-col">
+                                    <label class="select-all-label">
+                                        <input type="checkbox" class="checkbox-input" id="select-all" onchange="toggleSelectAll()">
+                                    </label>
+                                </th>
+                                <th>ID</th>
+                                <th>Назва</th>
+                                <th>Tag</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.map(item => `
+                                <tr id="row-${item.id}" class="${selectedValues.has(item.id) ? 'selected' : ''}">
+                                    <td class="checkbox-col">
+                                        <input type="checkbox" 
+                                               class="checkbox-input row-checkbox" 
+                                               data-id="${item.id}"
+                                               data-name="${item.name}"
+                                               ${selectedValues.has(item.id) ? 'checked' : ''}
+                                               onchange="toggleRow(${item.id}, '${item.name}')">
+                                    </td>
+                                    <td>${item.id}</td>
+                                    <td><strong>${item.name}</strong></td>
+                                    <td><span class="tag">${item.tag || 'N/A'}</span></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+
+                contentDiv.innerHTML = table;
+                updateSelectedCount();
+
+            } catch (error) {
+                console.error('Помилка завантаження даних:', error);
+                contentDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Помилка завантаження даних<br>
+                        <small>${error.message}</small>
+                    </div>
+                `;
+                countSpan.textContent = '0';
+            }
+        }
+
+        function toggleRow(id, name) {
+            const row = document.getElementById(`row-${id}`);
+            
+            if (selectedValues.has(id)) {
+                selectedValues.delete(id);
+                row.classList.remove('selected');
+            } else {
+                selectedValues.add(id);
+                row.classList.add('selected');
+            }
+            
+            updateSelectedCount();
+            updateSelectAllCheckbox();
+        }
+
+        function toggleSelectAll() {
+            const selectAllCheckbox = document.getElementById('select-all');
+            const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+            
+            if (selectAllCheckbox.checked) {
+                rowCheckboxes.forEach(checkbox => {
+                    const id = parseInt(checkbox.dataset.id);
+                    selectedValues.add(id);
+                    checkbox.checked = true;
+                    document.getElementById(`row-${id}`).classList.add('selected');
+                });
+            } else {
+                rowCheckboxes.forEach(checkbox => {
+                    const id = parseInt(checkbox.dataset.id);
+                    selectedValues.delete(id);
+                    checkbox.checked = false;
+                    document.getElementById(`row-${id}`).classList.remove('selected');
+                });
+            }
+            
+            updateSelectedCount();
+        }
+
+        function updateSelectAllCheckbox() {
+            const selectAllCheckbox = document.getElementById('select-all');
+            const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+            
+            if (rowCheckboxes.length === 0) {
+                selectAllCheckbox.checked = false;
+                return;
+            }
+            
+            const allChecked = Array.from(rowCheckboxes).every(cb => cb.checked);
+            selectAllCheckbox.checked = allChecked;
+        }
+
+        function updateSelectedCount() {
+            document.getElementById('selected-count').textContent = selectedValues.size;
+        }
+
+        function buildChart() {
+            const startDatetime = document.getElementById('start-datetime').value;
+            const endDatetime = document.getElementById('end-datetime').value;
+            
+            if (!startDatetime || !endDatetime) {
+                alert('Будь ласка, виберіть дату та час початку і кінця!');
+                return;
+            }
+
+            if (selectedValues.size === 0) {
+                alert('Будь ласка, виберіть хоча б одне значення!');
+                return;
+            }
+
+            // Конвертуємо локальний час в Unix timestamp
+            const startUnix = Math.floor(new Date(startDatetime).getTime() / 1000);
+            const endUnix = Math.floor(new Date(endDatetime).getTime() / 1000);
+            
+            // Формуємо список ID через кому
+            const valueIds = Array.from(selectedValues).join(',');
+            
+            // Формуємо URL з параметрами
+            const chartUrl = `http://192.168.2.45:8080/measures/chart?value_ids=${valueIds}&start_time=${startUnix}&end_time=${endUnix}`;
+            
+            console.log('=== Відкриваю графік ===');
+            console.log('URL:', chartUrl);
+            console.log('Value IDs:', valueIds);
+            console.log('Start Unix:', startUnix);
+            console.log('End Unix:', endUnix);
+            
+            // Відкриваємо графік в новій вкладці
+            window.open(chartUrl, '_blank');
+        }
+
+        // Встановлюємо дату за замовчуванням (остання доба)
+        window.addEventListener('DOMContentLoaded', () => {
+            const now = new Date();
+            const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+            
+            document.getElementById('end-datetime').value = formatDatetimeLocal(now);
+            document.getElementById('start-datetime').value = formatDatetimeLocal(yesterday);
+        });
+
+        function formatDatetimeLocal(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+        // Автоматично завантажуємо дані при завантаженні сторінки
+        loadValues();
+    </script>
+</body>
+</html>
